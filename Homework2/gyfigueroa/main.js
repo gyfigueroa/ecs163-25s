@@ -7,7 +7,7 @@ let boxMargin = {top: 10, right: 30, bottom: 30, left: 60},
     boxWidth = 400 - boxMargin.left - boxMargin.right,
     boxHeight = 350 - boxMargin.top - boxMargin.bottom;
 
-let heatmapLeft = 800, heatmapTop = 0;  // Positioned to the right of existing charts
+let heatmapLeft = 400, heatmapTop = 0;  // Positioned to the right of existing charts
 let heatmapMargin = {top: 40, right: 30, bottom: 80, left: 80},
     heatmapWidth = 400 - heatmapMargin.left - heatmapMargin.right,
     heatmapHeight = 350 - heatmapMargin.top - heatmapMargin.bottom;
@@ -110,15 +110,6 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
 
     let tempStats = {};
 
-
-
-    let MHbyGenre = {
-        Anxiety: [0, 0, 0, 0, 0, 0],
-        Depression: [0, 0, 0, 0, 0, 0],
-        Insomnia: [0, 0, 0, 0, 0, 0],
-        OCD: [0, 0, 0, 0, 0, 0],
-    };
-
     let MHbyAge = {
         Anxiety: {
             Child: 0, Adult: 0,
@@ -163,10 +154,6 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
         }
     });
 
-    for (let key in MHbyGenre) {
-        MHbyGenre[key] = MHbyGenre[key].map(num => Math.round(num));
-    }
-
     let heatmapData = {};
     let id = 1;
     attributes.forEach(attr => {
@@ -184,21 +171,9 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
 
     console.log(heatmapData);
 
-    for (let attribute in MHbyGenre){
-        MHbyGenre[attribute].forEach((avg, index) => {
-            heatmapData[id++] = {
-                attribute,
-                genre: top6[index][0],
-                avg
-            };
-        });
-    }
 
     console.log("Mental Health by Genre");
 
-    
-      
-    console.log(MHbyGenre);
     console.log(heatmapData);
 
     
@@ -236,6 +211,37 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
     let svg = d3.select("svg");
 
     // heatmap
+    let g2 = svg.append("g")
+        .attr("transform", `translate(${heatmapLeft + heatmapMargin.left}, ${heatmapTop + heatmapMargin.top})`);
+
+    let xHeat = d3.scaleBand()
+        .range([0, heatmapWidth])
+        .domain(attributes)
+        .padding(0.01);
+    g2.append("g")
+        .attr("transform", `translate(0, ${heatmapHeight})`)
+        .call(d3.axisBottom(xHeat))
+
+    let yHeat = d3.scaleBand()
+        .range([heatmapHeight, 0])
+        .domain(genres)
+        .padding(0.01)
+    g2.append("g")
+        .call(d3.axisLeft(yHeat))
+
+    var heatColor = d3.scaleLinear()
+        .range(["white", "#69b3a2"])
+        .domain([1,10])
+    
+    g2.selectAll()
+        .data(Object.values(heatmapData))
+        .enter()
+        .append("rect")
+            .attr("x", d => xHeat(d.attribute))
+            .attr("y", d => yHeat(d.genre))
+            .attr("width", xHeat.bandwidth())
+            .attr("height", yHeat.bandwidth())
+            .style("fill", d => heatColor(d.avg));
 
 
     // box plot
