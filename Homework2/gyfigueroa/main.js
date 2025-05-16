@@ -2,20 +2,7 @@ let abFilter = 25;
 let width = window.innerWidth;
 let height = window.innerHeight;
 
-let boxLeft = 0, boxTop = 0;
-let boxMargin = {top: 10, right: 30, bottom: 30, left: 60},
-    boxWidth = 400 - boxMargin.left - boxMargin.right,
-    boxHeight = 350 - boxMargin.top - boxMargin.bottom;
-
-let heatmapLeft = 400, heatmapTop = 0;  // Positioned to the right of existing charts
-let heatmapMargin = {top: 40, right: 30, bottom: 80, left: 80},
-    heatmapWidth = 400 - heatmapMargin.left - heatmapMargin.right,
-    heatmapHeight = 350 - heatmapMargin.top - heatmapMargin.bottom;
-
-let stringLeft = 0, stringTop = 400;
-let stringMargin = {top: 10, right: 30, bottom: 30, left: 60},
-    stringWidth = width - stringMargin.left - stringMargin.right,
-    stringHeight = height-450 - stringMargin.top - stringMargin.bottom;
+const svgG2 = d3.select("svg.g2");
 
 function FreqToNum(freq){
     if (freq === "Never"){ return 0; } 
@@ -107,6 +94,8 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
     console.log(genres);
 
     let attributes = ["Anxiety", "Depression", "Insomnia", "OCD"];
+    let ageGroup = ["Child", "Adult"];
+    
 
     let tempStats = {};
 
@@ -169,11 +158,7 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
         });
     });
 
-    console.log(heatmapData);
-
-
     console.log("Mental Health by Genre");
-
     console.log(heatmapData);
 
     
@@ -181,14 +166,9 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
     console.log(MHbyAge);
 
     let processedData = filteredData.map(d=>{
-
-
-
         return {
             "Service":d.Service,
             "Adult":d.Adult,
-
-            /* "FavGenre":d.FavGenre, */
             "Exploratory":d.Exploratory,
             "ForeignLang":d.ForeignLang,
             "Value":1,
@@ -196,6 +176,7 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
     });
     console.log("processedData", processedData);
 
+    // reformat data becausee i formatted it weird the first time
     let transformedMHbyAge = [];
 
     for (let condition in MHbyAge) {
@@ -207,98 +188,231 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
 
 
 
-
     let svg = d3.select("svg");
 
-    // heatmap
-    let g2 = svg.append("g")
-        .attr("transform", `translate(${heatmapLeft + heatmapMargin.left}, ${heatmapTop + heatmapMargin.top})`);
-
-    let xHeat = d3.scaleBand()
-        .range([0, heatmapWidth])
-        .domain(attributes)
-        .padding(0.01);
-    g2.append("g")
-        .attr("transform", `translate(0, ${heatmapHeight})`)
-        .call(d3.axisBottom(xHeat))
-
-    let yHeat = d3.scaleBand()
-        .range([heatmapHeight, 0])
-        .domain(genres)
-        .padding(0.01)
-    g2.append("g")
-        .call(d3.axisLeft(yHeat))
-
-    var heatColor = d3.scaleLinear()
-        .range(["white", "#69b3a2"])
-        .domain([1,10])
+    function drawHeatmap() {
+        svgG2.selectAll("*").remove(); // clear previous drawing
     
-    g2.selectAll()
-        .data(Object.values(heatmapData))
+        const g2Node = svgG2.node();
+        const width = g2Node.clientWidth;
+        const height = g2Node.clientHeight;
+    
+        const margin = { top: 50, right: 30, bottom: 60, left: 60 };
+        const innerWidth = width - margin.left - margin.right;
+        const innerHeight = height - margin.top - margin.bottom;
+
+        svgG2
+            .attr("width", width)
+            .attr("height", height)
+            .append("text")
+            .attr("x", width / 2)
+            .attr("y", margin.top / 2)
+            .attr("text-anchor", "middle")
+            .style("font-size", "16px")
+            .style("font-weight", "bold")
+            .text("Average Mental Health Scores by Genre");
+    
+        const g2 = svgG2
+          .attr("width", width)
+          .attr("height", height)
+          .append("g")
+          .attr("transform", `translate(${margin.left},${margin.top})`);
+    
+        // heatmap logic
+        // x axis
+        let xHeat = d3.scaleBand()
+            .range([0, innerWidth])
+            .domain(attributes)
+            .padding(0.01);
+        g2.append("g")
+            .attr("transform", `translate(0, ${innerHeight})`)
+            .call(d3.axisBottom(xHeat))
+
+        // y axis
+        let yHeat = d3.scaleBand()
+            .range([innerHeight, 0])
+            .domain(genres)
+            .padding(0.01)
+        g2.append("g")
+            .call(d3.axisLeft(yHeat))
+
+        var heatColor = d3.scaleLinear()
+            .range(["#68e864", "#e86464"])
+            .domain([1,7])
+        
+        g2.selectAll()
+            .data(Object.values(heatmapData))
+            .enter()
+            .append("rect")
+                .attr("x", d => xHeat(d.attribute))
+                .attr("y", d => yHeat(d.genre))
+                .attr("width", xHeat.bandwidth())
+                .attr("height", yHeat.bandwidth())
+                .style("fill", d => heatColor(d.avg));
+        
+        // legend stuff
+        let legendWidth = 100;
+        let legendHeight = 10;
+        
+        let legendScale = d3.scaleLinear()
+            .domain([1, 7])
+            .range([0, legendWidth]);
+        
+        let legendAxis = d3.axisBottom(legendScale)
+            .ticks(5)
+            .tickFormat(d3.format(".0f"));
+        
+        let legend = g2.append("g")
+            .attr("transform", `translate(${(innerWidth - legendWidth)/2}, ${innerHeight + 20})`);
+        
+        let gradient = svgG2.append("defs")
+            .append("linearGradient")
+            .attr("id", "legendGradient");
+        
+        gradient.append("stop")
+            .attr("offset", "0%")
+            .attr("stop-color", "#68e864");
+        gradient.append("stop")
+            .attr("offset", "100%")
+            .attr("stop-color", "#e86464");
+        
+        legend.append("rect")
+            .attr("width", legendWidth)
+            .attr("height", legendHeight)
+            .style("fill", "url(#legendGradient)");
+        
+        legend.append("g")
+            .attr("transform", `translate(0, ${legendHeight})`)
+            .call(legendAxis);
+                
+    }
+    
+    drawHeatmap();
+    
+    window.addEventListener("resize", drawHeatmap);
+    
+
+
+    const svgG1 = d3.select("svg.g1");
+
+    function drawBoxPlot(){
+
+        svgG1.selectAll("*").remove(); // clear previous drawing
+
+        
+        const g1Node = svgG1.node();
+        const g1Width = g1Node.clientWidth;
+        const g1Height = g1Node.clientHeight;
+
+        const boxMargin = { top: 50, right: 30, bottom: 60, left: 60 };
+        const boxWidth = g1Width - boxMargin.left - boxMargin.right;
+        const boxHeight = g1Height - boxMargin.top - boxMargin.bottom - 20;
+
+        svgG1
+        .attr("width", g1Width)
+        .attr("height", g1Height)
+        .append("text")
+        .attr("x", g1Width / 2)
+        .attr("y", boxMargin.top / 2)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .style("font-weight", "bold")
+        .text("Mental Health by Age Group");
+
+        const g1 = svgG1
+        .attr("width", g1Width)
+        .attr("height", g1Height)
+        .append("g")
+        .attr("transform", `translate(${boxMargin.left}, ${boxMargin.top})`);
+
+        // axis labels
+        g1.append("text")
+        .attr("x", boxWidth / 2)
+        .attr("y", boxHeight + 40)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text("Mental Health Attribute");
+
+        g1.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -boxHeight / 2)
+        .attr("y", -45)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text("Score Total");
+
+        // x axis
+        let x = d3.scaleBand()
+        .domain(attributes)
+        .range([0, boxWidth])
+        .padding([0.2]);
+
+        g1.append("g")
+        .attr("transform", "translate(0," + boxHeight + ")")
+        .call(d3.axisBottom(x).tickSize(0));
+
+        // y axis
+        let y = d3.scaleLinear()
+        .domain([0, d3.max(transformedMHbyAge, d => d.value)])
+        .range([boxHeight, 0]);
+
+        g1.append("g")
+        .call(d3.axisLeft(y));
+
+        // subgroup scale
+        let xSubgroup = d3.scaleBand()
+        .domain(ageGroup)
+        .range([0, x.bandwidth()])
+        .padding([0.05]);
+
+        // color scale
+        let color = d3.scaleOrdinal()
+        .domain(ageGroup)
+        .range(['#377eb8','#4daf4a']);
+
+        // grouped bars
+        g1.append("g")
+        .selectAll("g")
+        .data(attributes)
         .enter()
-        .append("rect")
-            .attr("x", d => xHeat(d.attribute))
-            .attr("y", d => yHeat(d.genre))
-            .attr("width", xHeat.bandwidth())
-            .attr("height", yHeat.bandwidth())
-            .style("fill", d => heatColor(d.avg));
+        .append("g")
+            .attr("transform", d => `translate(${x(d)}, 0)`)
+        .selectAll("rect")
+        .data(d => ageGroup.map(key => {
+            let entry = transformedMHbyAge.find(e => e.group === d && e.subgroup === key);
+            return { key, value: entry.value };
+        }))
+        .enter().append("rect")
+            .attr("x", d => xSubgroup(d.key))
+            .attr("y", d => y(d.value))
+            .attr("width", xSubgroup.bandwidth())
+            .attr("height", d => boxHeight - y(d.value))
+            .attr("fill", d => color(d.key));
 
+        const legend = svgG1.append("g")
+            .attr("transform", `translate(${g1Width - 120}, ${boxMargin.top})`);
+        
+        ageGroup.forEach((key, i) => {
+            const yOffset = i * 20;
+            legend.append("rect")
+              .attr("x", 0)
+              .attr("y", yOffset)
+              .attr("width", 10)
+              .attr("height", 10)
+              .attr("fill", color(key));
+            legend.append("text")
+              .attr("x", 15)
+              .attr("y", yOffset + 9)
+              .style("font-size", "12px")
+              .text(key);
+          });
+    }
 
-    // box plot
-    let g1 = svg.append("g")
-    .attr("transform", `translate(${boxMargin.left}, ${boxMargin.top})`);
+    drawBoxPlot();
 
-    let groups = ["Anxiety", "Depression", "Insomnia", "OCD"];
-    let subgroups = ["Child", "Adult"];
-
-    // x axis
-    let x = d3.scaleBand()
-    .domain(groups)
-    .range([0, boxWidth])
-    .padding([0.2]);
-
-    g1.append("g")
-    .attr("transform", "translate(0," + boxHeight + ")")
-    .call(d3.axisBottom(x).tickSize(0));
-
-    // y axis
-    let y = d3.scaleLinear()
-    .domain([0, d3.max(transformedMHbyAge, d => d.value)])
-    .range([boxHeight, 0]);
-
-    g1.append("g")
-    .call(d3.axisLeft(y));
-
-    // subgroup scale
-    let xSubgroup = d3.scaleBand()
-    .domain(subgroups)
-    .range([0, x.bandwidth()])
-    .padding([0.05]);
-
-    // color scale
-    let color = d3.scaleOrdinal()
-    .domain(subgroups)
-    .range(['#377eb8','#4daf4a']);
-
-    // grouped bars
-    g1.append("g")
-    .selectAll("g")
-    .data(groups)
-    .enter()
-    .append("g")
-        .attr("transform", d => `translate(${x(d)}, 0)`)
-    .selectAll("rect")
-    .data(d => subgroups.map(key => {
-        let entry = transformedMHbyAge.find(e => e.group === d && e.subgroup === key);
-        return { key, value: entry.value };
-    }))
-    .enter().append("rect")
-        .attr("x", d => xSubgroup(d.key))
-        .attr("y", d => y(d.value))
-        .attr("width", xSubgroup.bandwidth())
-        .attr("height", d => boxHeight - y(d.value))
-        .attr("fill", d => color(d.key));
-
+    window.addEventListener("resize", drawBoxPlot);
+    
+    // create links for parallel set
     let graph = (() => {
         let keys = ["Service", "Adult", "ForeignLang", "Exploratory"];
         let index = -1;
@@ -346,7 +460,34 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
         return { nodes, links };
     })();
 
-    chart = (() => {
+    const svgG3 = d3.select("svg.g3");
+
+    function drawParallelSet(){
+        let color = d3.scaleOrdinal()
+        .domain(["Spotify", "YouTube Music", "Apple Music", "Pandora", "Other"])
+        .range(["#1DB954B3", "#FF0000B3", "#ff57b9B3", "#005483B3", "#888888B3"]); // custom colors
+      
+        svgG3.selectAll("*").remove();
+        
+        const g3Node = svgG3.node();
+        const g3Width = g3Node.clientWidth;
+        const g3Height = g3Node.clientHeight;
+        
+        const stringMargin = { top: 50, right: 30, bottom: 60, left: 20 };
+        const stringWidth = g3Width - stringMargin.left - stringMargin.right;
+        const stringHeight = g3Height - stringMargin.top - stringMargin.bottom;
+
+        svgG3
+        .attr("width", g3Width)
+        .attr("height", g3Height)
+        .append("text")
+        .attr("x", g3Width / 2)
+        .attr("y", stringMargin.top / 2)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .style("font-weight", "bold")
+        .text("Demographic Flow (Music and Mental Health Survey)");
+
         let sankey = d3.sankey()
           .nodeSort(null)
           .linkSort(null)
@@ -354,13 +495,15 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
           .nodePadding(10)
           .extent([[stringMargin.left, stringMargin.top], [stringWidth, stringHeight]]);
       
-        let color = d3.scaleOrdinal()
-        .domain(["Spotify", "YouTube Music", "Apple Music", "Pandora", "Other"])
-        .range(["#1DB954B3", "#FF0000B3", "#ff57b9B3", "#005483B3", "#888888B3"]); // custom colors
-      
-      
-        const g3 = svg.append("g")
-            .attr("transform", `translate(${stringMargin.left}, ${stringTop})`);
+        
+        svgG3
+            .attr("width", g3Width)
+            .attr("height", g3Height);
+        
+        const g3 = svgG3
+            .append("g")
+            .attr("transform", `translate(${stringMargin.left}, ${stringMargin.top})`);
+        
       
         let { nodes, links } = sankey({
           nodes: graph.nodes.map(d => Object.create(d)),
@@ -397,11 +540,11 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
           .selectAll("text")
           .data(nodes)
           .join("text")
-            .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+            .attr("x", d => d.x0 < g3Width / 2 ? d.x1 + 6 : d.x0 - 6)
             .attr("y", d => (d.y1 + d.y0) / 2)
             .attr("dy", "0.35em")
             .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
-            .style("font-weight", "bold") // Bold text
+            .style("font-weight", "normal") // Bold text
             .style("fill", "black") // Main text color
             .style("stroke", "white") // Outline color
             .style("stroke-width", "2px") // Outline thickness
@@ -411,8 +554,12 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
             .attr("fill-opacity", 0.7)
             .text(d => ` ${d.value}`);
       
-        return g3.node();
-    })();
+
+    };
+
+    drawParallelSet();
+
+    window.addEventListener("resize", drawParallelSet);
       
         
 
