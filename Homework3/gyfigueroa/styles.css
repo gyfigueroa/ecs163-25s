@@ -1,0 +1,41 @@
+:root {
+    --gap: 20px;
+  }
+
+body{
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    padding: 30px;
+    box-sizing: border-box;
+    background-color: rgb(238, 238, 238);
+}
+
+.toprow{
+    display: flex;
+    gap: var(--gap);
+    flex: 1;
+}
+
+.toprow > svg {
+    flex:1;
+}
+
+.bottomrow{
+    flex: 1;
+    display: flex;
+}
+
+.bottomrow > svg {
+    flex: 1;
+}
+
+svg {
+    background-color: rgb(255, 255, 255);
+    border-radius: var(--gap);
+}
+
+.brush .selection {
+  stroke: none;
+  fill: rgba(0, 0, 255, 0.2);
+}
