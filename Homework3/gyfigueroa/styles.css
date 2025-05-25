@@ -2,13 +2,49 @@
     --gap: 20px;
   }
 
+html {
+    background-color: rgb(238, 238, 238);
+}
+
 body{
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: var(--gap);
     padding: 30px;
     box-sizing: border-box;
-    background-color: rgb(238, 238, 238);
+}
+
+/* Titles for charts */
+.chart-title {
+    font-size: 18px;
+    font-weight: 800;
+    fill: black;
+    text-anchor: middle;
+    font-family: "Wittgenstein", serif;
+}
+
+/* Axis labels */
+.axis-title {
+    font-size: 12px;
+    fill: #333;
+    font-weight: 600;
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    text-anchor: middle;
+}
+
+/* Axis labels */
+.axis-label, .tick text {
+    font-size: 10px;
+    fill: #333;
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+
+/* Legend text */
+.legend-label {
+    font-size: 12px;
+    fill: #555;
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 
 .toprow{
@@ -24,6 +60,7 @@ body{
 .bottomrow{
     flex: 1;
     display: flex;
+    position: relative;
 }
 
 .bottomrow > svg {
@@ -33,9 +70,57 @@ body{
 svg {
     background-color: rgb(255, 255, 255);
     border-radius: var(--gap);
+    /* box-shadow: -1px 10px 10px -6px rgba(0,0,0,0.2); */
 }
 
 .brush .selection {
   stroke: none;
   fill: rgba(0, 0, 255, 0.2);
 }
+
+#resetZoomButton {
+    font-size: 14px;
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    opacity: 0;
+    visibility: hidden;
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: rgba(128, 128, 128, 0.50);
+    backdrop-filter: blur(20px);
+    border-radius: 10px;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#resetZoomButton.visible {
+    opacity: 1;
+    visibility: visible;
+    
+}
+
+#helpText {
+    opacity: 1;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    font-size: 16px;
+    color: #b8b8b8;
+    font-weight: 600;
+    font-family:system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    text-anchor: middle;
+    visibility: visible;
+    position: absolute;
+    transform: translate(50%, -50%);
+    text-align: center;
+    bottom: 20px;
+    right: 50%;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#helpText.hidden{
+    opacity: 0;
+    visibility: hidden;
+}
+

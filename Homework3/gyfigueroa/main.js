@@ -11,93 +11,23 @@ function FreqToNum(freq){
     else { return 3 };
 }
 
-let FreqGenres = {Classical: 0, Country: 0, EDM: 0, Folk: 0, Gospel: 0, "Hip hop": 0, Jazz: 0, Kpop: 0, Latin: 0, Lofi: 0, Metal: 0, Pop: 0, "R&B": 0, Rap: 0, Rock: 0, VideoGame: 0};
 
-let services = ["Spotify", "YouTube Music", "Apple Music", "Pandora"];
 
 d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
     console.log("rawData", rawData);
-
-    rawData.forEach(function(d){
-        d.Age = Number(d.Age);
-        if (d.Age < 21){
-            d.Adult = "Child";
-        } else {
-            d.Adult = "Adult";
-        }
-        d.Service = String(d["Primary streaming service"]);
-        if (!services.includes(d.Service)){
-            d.Service = "Other";
-        }
-        d.FavGenre = String(d['Fav genre']);
-        d.Exploratory = String(d.Exploratory);
-        if (d.Exploratory === "Yes"){
-            d.Exploratory = "Exploratory";
-        }
-        if (d.Exploratory === "No"){
-            d.Exploratory = "Consistent";
-        }
-        d.ForeignLang = String(d['Foreign languages']);
-        if (d.ForeignLang === "Yes"){
-            d.ForeignLang = "Bilingual";
-        }
-        if (d.ForeignLang === "No"){
-            d.ForeignLang = "Monolingual";
-        }
-        d.FreqClassical = Number(FreqToNum(d['Frequency [Classical]']));
-        FreqGenres.Classical += d.FreqClassical;
-        d.FreqCountry = Number(FreqToNum(d['Frequency [Country]']));
-        FreqGenres.Country += d.FreqCountry;
-        d.FreqEDM = Number(FreqToNum(d['Frequency [EDM]']));
-        FreqGenres.EDM += d.FreqEDM;
-        d.FreqFolk = Number(FreqToNum(d['Frequency [Folk]']));
-        FreqGenres.Folk += d.FreqFolk;
-        d.FreqGospel = Number(FreqToNum(d['Frequency [Gospel]']));
-        FreqGenres.Gospel += d.FreqGospel;
-        d.FreqHipHop = Number(FreqToNum(d['Frequency [Hip hop]']));
-        FreqGenres["Hip hop"] += d.FreqHipHop;
-        d.FreqJazz = Number(FreqToNum(d['Frequency [Jazz]']));
-        FreqGenres.Jazz += d.FreqJazz;
-        d.FreqKPop = Number(FreqToNum(d['Frequency [K pop]']));
-        FreqGenres.Kpop += d.FreqKPop;
-        d.FreqLatin = Number(FreqToNum(d['Frequency [Latin]']));
-        FreqGenres.Latin += d.FreqLatin;
-        d.FreqLofi = Number(FreqToNum(d['Frequency [Lofi]']));
-        FreqGenres.Lofi += d.FreqLofi;
-        d.FreqMetal = Number(FreqToNum(d['Frequency [Metal]']));
-        FreqGenres.Metal += d.FreqMetal;
-        d.FreqPop = Number(FreqToNum(d['Frequency [Pop]']));
-        FreqGenres.Pop += d.FreqPop;
-        d.FreqRnB = Number(FreqToNum(d['Frequency [R&B]']));
-        FreqGenres["R&B"] += d.FreqRnB;
-        d.FreqRap = Number(FreqToNum(d['Frequency [Rap]']));
-        FreqGenres.Rap += d.FreqRap;
-        d.FreqRock = Number(FreqToNum(d['Frequency [Rock]']));
-        FreqGenres.Rock += d.FreqRock;
-        d.FreqVideoGame = Number(FreqToNum(d['Frequency [Video game music]']));
-        FreqGenres.VideoGame += d.FreqVideoGame;
-        d.Anxiety = Number(d.Anxiety);
-        d.Depression = Number(d.Depression);
-        d.Insomnia = Number(d.Insomnia);
-        d.OCD = Number(d.OCD);
-    });
 
     let filteredData = rawData.filter(row => 
         Object.values(row).every(value => value !== null && value !== undefined && value !== '')
     );
 
-    let entries = Object.entries(FreqGenres);
-    let sorted = entries.sort((a, b) => b[1] - a[1]);
-    let top6 = sorted.slice(0, 6);
-    let genres = top6.map(d => d[0])
-    console.log("Top 6 Genres");
-    console.log(genres);
-
     let attributes = ["Anxiety", "Depression", "Insomnia", "OCD"];
     let ageGroup = ["Child", "Adult"];
+    let FreqGenres = {Classical: 0, Country: 0, EDM: 0, Folk: 0, Gospel: 0, "Hip hop": 0, Jazz: 0, Kpop: 0, Latin: 0, Lofi: 0, Metal: 0, Pop: 0, "R&B": 0, Rap: 0, Rock: 0, VideoGame: 0};
+    let services = ["Spotify", "YouTube Music", "Apple Music", "Pandora"];
     
 
     let tempStats = {};
+    let genres;
 
     let MHbyAge = {
         Anxiety: {
@@ -118,6 +48,81 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
     let transformedMHbyAge = [];
 
     function computeData(filteredData){
+        FreqGenres = {Classical: 0, Country: 0, EDM: 0, Folk: 0, Gospel: 0, "Hip hop": 0, Jazz: 0, Kpop: 0, Latin: 0, Lofi: 0, Metal: 0, Pop: 0, "R&B": 0, Rap: 0, Rock: 0, VideoGame: 0};
+
+        filteredData.forEach(function(d){
+            d.Age = Number(d.Age);
+            if (d.Age < 21){
+                d.Adult = "Child";
+            } else {
+                d.Adult = "Adult";
+            }
+            d.Service = String(d["Primary streaming service"]);
+            if (!services.includes(d.Service)){
+                d.Service = "Other";
+            }
+            d.FavGenre = String(d['Fav genre']);
+            d.Exploratory = String(d.Exploratory);
+            if (d.Exploratory === "Yes"){
+                d.Exploratory = "Exploratory";
+            }
+            if (d.Exploratory === "No"){
+                d.Exploratory = "Consistent";
+            }
+            d.ForeignLang = String(d['Foreign languages']);
+            if (d.ForeignLang === "Yes"){
+                d.ForeignLang = "Bilingual";
+            }
+            if (d.ForeignLang === "No"){
+                d.ForeignLang = "Monolingual";
+            }
+            d.FreqClassical = Number(FreqToNum(d['Frequency [Classical]']));
+            FreqGenres.Classical += d.FreqClassical;
+            d.FreqCountry = Number(FreqToNum(d['Frequency [Country]']));
+            FreqGenres.Country += d.FreqCountry;
+            d.FreqEDM = Number(FreqToNum(d['Frequency [EDM]']));
+            FreqGenres.EDM += d.FreqEDM;
+            d.FreqFolk = Number(FreqToNum(d['Frequency [Folk]']));
+            FreqGenres.Folk += d.FreqFolk;
+            d.FreqGospel = Number(FreqToNum(d['Frequency [Gospel]']));
+            FreqGenres.Gospel += d.FreqGospel;
+            d.FreqHipHop = Number(FreqToNum(d['Frequency [Hip hop]']));
+            FreqGenres["Hip hop"] += d.FreqHipHop;
+            d.FreqJazz = Number(FreqToNum(d['Frequency [Jazz]']));
+            FreqGenres.Jazz += d.FreqJazz;
+            d.FreqKPop = Number(FreqToNum(d['Frequency [K pop]']));
+            FreqGenres.Kpop += d.FreqKPop;
+            d.FreqLatin = Number(FreqToNum(d['Frequency [Latin]']));
+            FreqGenres.Latin += d.FreqLatin;
+            d.FreqLofi = Number(FreqToNum(d['Frequency [Lofi]']));
+            FreqGenres.Lofi += d.FreqLofi;
+            d.FreqMetal = Number(FreqToNum(d['Frequency [Metal]']));
+            FreqGenres.Metal += d.FreqMetal;
+            d.FreqPop = Number(FreqToNum(d['Frequency [Pop]']));
+            FreqGenres.Pop += d.FreqPop;
+            d.FreqRnB = Number(FreqToNum(d['Frequency [R&B]']));
+            FreqGenres["R&B"] += d.FreqRnB;
+            d.FreqRap = Number(FreqToNum(d['Frequency [Rap]']));
+            FreqGenres.Rap += d.FreqRap;
+            d.FreqRock = Number(FreqToNum(d['Frequency [Rock]']));
+            FreqGenres.Rock += d.FreqRock;
+            d.FreqVideoGame = Number(FreqToNum(d['Frequency [Video game music]']));
+            FreqGenres.VideoGame += d.FreqVideoGame;
+            d.Anxiety = Number(d.Anxiety);
+            d.Depression = Number(d.Depression);
+            d.Insomnia = Number(d.Insomnia);
+            d.OCD = Number(d.OCD);
+        });
+
+        
+
+        let entries = Object.entries(FreqGenres);
+        let sorted = entries.sort((a, b) => b[1] - a[1]);
+        let top6 = sorted.slice(0, 6);
+        genres = top6.map(d => d[0])
+        console.log("Top 6 Genres");
+        console.log(genres);
+        
         tempStats = {};
         heatmapData = {};
         MHbyAge = {
@@ -232,11 +237,9 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
             .attr("width", width)
             .attr("height", height)
             .append("text")
+            .attr("class", "chart-title")
             .attr("x", width / 2)
             .attr("y", margin.top / 2)
-            .attr("text-anchor", "middle")
-            .style("font-size", "16px")
-            .style("font-weight", "bold")
             .text("Average Mental Health Scores by Genre");
     
         let g2 = svgG2
@@ -267,15 +270,28 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
             .range(["#68e864", "#e86464"])
             .domain([1,7])
         
-        g2.selectAll()
-            .data(Object.values(heatmapData))
-            .enter()
-            .append("rect")
-                .attr("x", d => xHeat(d.attribute))
-                .attr("y", d => yHeat(d.genre))
-                .attr("width", xHeat.bandwidth())
-                .attr("height", yHeat.bandwidth())
-                .style("fill", d => heatColor(d.avg));
+        const rects = g2.selectAll("rect")
+        .data(Object.values(heatmapData), d => `${d.attribute}_${d.genre}`);
+
+        // ENTER: create new rects
+        rects.enter()
+        .append("rect")
+            .attr("x", d => xHeat(d.attribute))
+            .attr("y", d => yHeat(d.genre))
+            .attr("width", xHeat.bandwidth())
+            .attr("height", yHeat.bandwidth())
+            .style("fill", d => heatColor(d.avg))
+        .merge(rects) // UPDATE: merge new + existing
+            .transition()
+            .duration(800)
+            .style("fill", d => heatColor(d.avg));
+
+        // EXIT: remove unused rects
+        rects.exit()
+        .transition()
+            .duration(400)
+            .style("opacity", 0)
+            .remove();
         
         // legend stuff
         let legendWidth = 100;
@@ -342,9 +358,7 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
         .append("text")
         .attr("x", g1Width / 2)
         .attr("y", boxMargin.top / 2)
-        .attr("text-anchor", "middle")
-        .style("font-size", "16px")
-        .style("font-weight", "bold")
+        .attr("class", "chart-title")
         .text("Mental Health by Age Group");
 
         let g1 = svgG1
@@ -353,20 +367,18 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
         .append("g")
         .attr("transform", `translate(${boxMargin.left}, ${boxMargin.top})`);
 
-        // axis labels
+        // axis titles
         g1.append("text")
+        .attr("class", "axis-title")
         .attr("x", boxWidth / 2)
         .attr("y", boxHeight + 40)
-        .attr("text-anchor", "middle")
-        .style("font-size", "12px")
         .text("Mental Health Attribute");
 
         g1.append("text")
+        .attr("class", "axis-title")
         .attr("transform", "rotate(-90)")
         .attr("x", -boxHeight / 2)
         .attr("y", -45)
-        .attr("text-anchor", "middle")
-        .style("font-size", "12px")
         .text("Score Total");
 
         // x axis
@@ -377,7 +389,9 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
 
         g1.append("g")
         .attr("transform", "translate(0," + boxHeight + ")")
-        .call(d3.axisBottom(x).tickSize(0));
+        .call(d3.axisBottom(x));
+
+        
 
         // y axis
         let y = d3.scaleLinear()
@@ -399,26 +413,66 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
         .range(['#377eb8','#4daf4a']);
 
         // grouped bars
-        g1.append("g")
-        .selectAll("g")
-        .data(attributes)
-        .enter()
-        .append("g")
+        /* g1.append("g")
+            .selectAll("g")
+            .data(attributes)
+            .enter()
+            .append("g")
             .attr("transform", d => `translate(${x(d)}, 0)`)
-        .selectAll("rect")
-        .data(d => ageGroup.map(key => {
-            let entry = transformedMHbyAge.find(e => e.group === d && e.subgroup === key);
-            return { key, value: entry.value };
-        }))
-        .enter().append("rect")
-            .attr("x", d => xSubgroup(d.key))
+            .selectAll("rect")
+            .data(d => ageGroup.map(key => {
+                let entry = transformedMHbyAge.find(e => e.group === d && e.subgroup === key);
+                return { key, value: entry.value };
+            }))
+            .enter().append("rect")
+                .attr("x", d => xSubgroup(d.key))
+                .attr("y", d => y(d.value))
+                .attr("width", xSubgroup.bandwidth())
+                .attr("height", d => boxHeight - y(d.value))
+                .attr("fill", d => color(d.key)); */
+
+        const bars = g1.selectAll("g.barGroup")
+            .data(attributes)
+            .join("g")
+                .attr("class", "barGroup")
+                .attr("transform", d => `translate(${x(d)}, 0)`);
+
+        const rects = bars.selectAll("rect")
+            .data(d => ageGroup.map(key => {
+                let entry = transformedMHbyAge.find(e => e.group === d && e.subgroup === key);
+                return { key, value: entry.value };
+            }), d => d.key);
+
+        // JOIN: enter new bars
+        rects.enter()
+            .append("rect")
+                .attr("x", d => xSubgroup(d.key))
+                .attr("width", xSubgroup.bandwidth())
+                .attr("fill", d => color(d.key))
+                .attr("y", y(0))
+                .attr("height", 0)
+            .transition()
+                .duration(800)
+                .attr("y", d => y(d.value))
+                .attr("height", d => boxHeight - y(d.value));
+
+        // UPDATE: animate existing bars
+        rects.transition()
+            .duration(800)
             .attr("y", d => y(d.value))
-            .attr("width", xSubgroup.bandwidth())
-            .attr("height", d => boxHeight - y(d.value))
-            .attr("fill", d => color(d.key));
+            .attr("height", d => boxHeight - y(d.value));
+
+        // EXIT: remove old bars
+        rects.exit()
+            .transition()
+                .duration(400)
+                .attr("y", y(0))
+                .attr("height", 0)
+                .remove();
+
 
         let legend = svgG1.append("g")
-            .attr("transform", `translate(${g1Width - 120}, ${boxMargin.top})`);
+            .attr("transform", `translate(${g1Width - 70}, ${boxMargin.top})`);
         
         ageGroup.forEach((key, i) => {
             let yOffset = i * 20;
@@ -429,6 +483,7 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
               .attr("height", 10)
               .attr("fill", color(key));
             legend.append("text")
+              .attr("class", "legend-label")
               .attr("x", 15)
               .attr("y", yOffset + 9)
               .style("font-size", "12px")
@@ -436,6 +491,10 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
           });
         
     }
+
+    drawBoxPlot();
+    
+    window.addEventListener("resize", drawBoxPlot);
     
     // create links for parallel set
     let graph = (() => {
@@ -518,6 +577,7 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
         stringWidth = g3Width - stringMargin.left - stringMargin.right;
         stringHeight = g3Height - stringMargin.top - stringMargin.bottom;
 
+
         let color = d3.scaleOrdinal()
         .domain(["Spotify", "YouTube Music", "Apple Music", "Pandora", "Other"])
         .range(["#1DB954B3", "#FF0000B3", "#ff57b9B3", "#005483B3", "#888888B3"]); // custom colors
@@ -530,12 +590,9 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
             .attr("width", g3Width)
             .attr("height", g3Height)
             .append("text")
+            .attr("class", "chart-title")
             .attr("x", g3Width / 2)
             .attr("y", stringMargin.top / 2 + 15)
-            .attr("text-anchor", "middle")
-            .style("fill", "black")
-            .style("font-size", "16px")
-            .style("font-weight", "bold")
             .text("Demographic Flow (Music and Mental Health Survey)");
 
 
@@ -547,20 +604,46 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
           .extent([[stringMargin.left, stringMargin.top], [stringWidth, stringHeight]]);
       
         
-        svgG3
-            .attr("width", g3Width)
-            .attr("height", g3Height);
-        
-        let g3 = svgG3
-            .append("g")
-            .attr("transform", `translate(${stringMargin.left}, ${stringMargin.top})`);
-
+    
         
       
         ({ nodes, links } = sankey({
           nodes: graph.nodes.map(d => Object.create(d)),
           links: graph.links.map(d => Object.create(d))
         }));
+
+
+
+        let minX = d3.min(nodes, d => d.x0);
+        let maxX = d3.max(nodes, d => d.x1);
+        let minY = d3.min(nodes, d => d.y0);
+        let maxY = d3.max(nodes, d => d.y1);
+
+        let nodeCenterX = (minX + maxX) / 2;
+        let nodeCenterY = (minY + maxY) / 2;
+
+        let svgCenterX = g3Width / 2;
+        let svgCenterY = g3Height / 2;
+
+        let translateX = svgCenterX - nodeCenterX;
+        let translateY = svgCenterY - nodeCenterY;
+
+        svgG3
+            .attr("width", g3Width)
+            .attr("height", g3Height);
+        
+        let zoomGroup = svgG3
+            .append("g")
+            .attr("class", "zoom-container")
+            .attr("transform", `translate(${translateX}, ${translateY})`);
+
+
+        console.log(translateX, translateY);
+        let g3 = zoomGroup
+            .append("g")
+            .attr("class", "zoom-content")
+/*             .attr("transform", `translate(${translateX}, ${translateY})`); */
+
 
         let selectedNode = null;
       
@@ -621,9 +704,9 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
             .attr("x", d => d.x0 < g3Width / 2 ? d.x1 + 6 : d.x0 - 6)
             .attr("y", d => (d.y1 + d.y0) / 2)
             .attr("dy", "0.35em")
+            .attr("class", "axis-label")
             .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
-            .style("font-weight", "normal") // Bold text
-            .style("fill", "black") // Main text color
+            .attr("font-weight", "600")
             .style("stroke", "white") // Outline color
             .style("stroke-width", "2px") // Outline thickness
             .style("paint-order", "stroke") // Draw outline first
@@ -631,6 +714,40 @@ d3.csv("data/mxmh_survey_results.csv").then(rawData =>{
           .append("tspan")
             .attr("fill-opacity", 0.7)
             .text(d => ` ${d.value}`);
+
+        const resetButton = document.getElementById("resetZoomButton");
+        const helpText = document.getElementById("helpText");
+
+        const zoom = d3.zoom()
+            .scaleExtent([1, 5]) // Zoom levels: from 1x to 5x
+            .translateExtent([[0, 0], [g3Width, g3Height]]) // Optional bounds
+            .on("zoom", (event) => {
+                zoomGroup.select(".zoom-content")
+                    .attr("transform", event.transform)
+
+                    // Show the reset button when zoom is not identity
+                if (!event.transform.k || event.transform.k === 1) {
+                    resetButton.classList.remove("visible");
+                    helpText.classList.remove("hidden");
+                } else {
+                    resetButton.classList.add("visible");
+                    helpText.classList.add("hidden");
+                }
+            });
+
+        svgG3.call(zoom);
+
+        // Reset zoom on button click
+        resetButton.addEventListener("click", () => {
+            svgG3.transition()
+                .duration(500)
+                .call(zoom.transform, d3.zoomIdentity);
+
+            resetButton.classList.remove("visible");
+            helpText.classList.remove("hidden");
+        });
+
+
       
 
     };
